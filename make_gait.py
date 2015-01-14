@@ -3,7 +3,7 @@ from builders.gait_builder import GaitBuilder, GaitCollisionChecker
 import sys
 
 if len(sys.argv) < 2:
-    print "Usage: python make_gait.py robot_name"
+    print "Usage: python make_gait.py path/to/robot_folder/robot_name"
     sys.exit(0)
 file_name = sys.argv[1]
 

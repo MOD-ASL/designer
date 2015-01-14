@@ -45,8 +45,8 @@ class PreviewCanvas(GLCanvas):
             x, y = [round(i,2)*self.module_scale for i in module_obj.Position[0:2]]
             z = (module_obj.Position[2] - 0.05)*self.module_scale # z starts at 0.05
             glTranslate(x, y, z)
-            if len(module_obj.Position) == 7:
-                [angle, ax, ay, az] = self.quaternion2AngleAxis(module_obj.Position[3:])
+            #if len(module_obj.Position) == 7:
+            #    [angle, ax, ay, az] = self.quaternion2AngleAxis(module_obj.Position[3:])
             self.drawCube(angle, ax, ay, az)
 
         #self.SwapBuffers() # not sure why this creates error

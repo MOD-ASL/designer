@@ -468,6 +468,9 @@ class ConfigurationBuilder(object):
 
 
 if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print "Usage: python configuration_builder.py /path/to/structure_file.struct /path/to/config_file.conf"
+        sys.exit(0)
     CB = ConfigurationBuilder()
     CB.loadStructure(sys.argv[1])
     CB.struct.printSummary()

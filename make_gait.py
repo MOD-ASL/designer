@@ -2,6 +2,9 @@ from builders.configuration_builder import ConfigurationBuilder
 from builders.gait_builder import GaitBuilder, GaitCollisionChecker
 import sys
 
+if len(sys.argv) < 2:
+    print "Usage: python make_gait.py robot_name"
+    sys.exit(0)
 file_name = sys.argv[1]
 
 CB = ConfigurationBuilder()

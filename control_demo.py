@@ -22,14 +22,32 @@ if not os.path.isfile(front):
     sys.exit(0)
 
 # build basic gait block
-f1 = CB.createGaitBlockET("finger1", pick)
-f2 = CB.createGaitBlockET("finger2", pick)
-f3 = CB.createGaitBlockET("finger3", pick)
-bodyroll = CB.createGaitBlockET("body", roll)
+f1 = CB.createGaitBlockET("Component_1", front)
+b1 = CB.createGaitBlockET("Component_1", back)
+n1 = CB.createGaitBlockET("Component_1", normal)
+
+f2 = CB.createGaitBlockET("Component_2", front)
+b2 = CB.createGaitBlockET("Component_2", back)
+n2 = CB.createGaitBlockET("Component_2", normal)
+
+f3 = CB.createGaitBlockET("Component_3", front)
+b3 = CB.createGaitBlockET("Component_3", back)
+n3 = CB.createGaitBlockET("Component_3", normal)
+
+f4 = CB.createGaitBlockET("Component_4", front)
+b4 = CB.createGaitBlockET("Component_4", back)
+n4 = CB.createGaitBlockET("Component_4", normal)
 
 # put basic blocks in parallel or series
-blockET = CB.createParallelBlockET([f1, f2])
-blockET = CB.createSeriesBlockET([blockET, f3, bodyroll])
+b1 = CB.createParallelBlockET([f1, f4])
+b2 = CB.createParallelBlockET([n1, b2, b3, n4])
+b3 = CB.createParallelBlockET([n2, n3])
+b4 = CB.createParallelBlockET([f2, f3])
+b5 = CB.createParallelBlockET([b1, n2, n3, b4])
+b6 = CB.createParallelBlockET([n1, n4])
+
+
+blockET = CB.createSeriesBlockET([b1,b2,b3]*6)
 
 # save to control file
 CB.build(blockET, sys.argv[1])

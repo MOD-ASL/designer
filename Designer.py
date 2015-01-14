@@ -71,7 +71,10 @@ class Designer_Frame(wx.Frame):
         self.node_name = ["Front Wheel", "Left Wheel", "Right Wheel", "Back Frame"]
         self.link_list = []
 
-        self.library_path = '/home/asl/SMORES/gaits_and_configs/'
+        dialog = wx.DirDialog(None, "Choose a directory:",style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
+        if dialog.ShowModal() == wx.ID_OK:
+            self.library_path = dialog.GetPath()
+        dialog.Destroy()
         self.loadSMORESLibrary(self.library_path)
         self.populateBaseList()
         self.populateConfigList()

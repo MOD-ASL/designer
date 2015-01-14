@@ -3,9 +3,13 @@
 import xml.etree.ElementTree as ET
 import os
 import sys
+import math
+import warnings
 from collections import OrderedDict
 from ast import literal_eval
 import numpy
+import Polygon
+from scipy.spatial import ConvexHull
 
 from objects import Module, Connection, Link
 from utils import kinematics
@@ -165,6 +169,23 @@ class ConfigurationBuilder(object):
             else:
                 raise ValueError("Component {!r} has already been updated.".format(component2_id))
 
+    def raiseConfiguration(self):
+        """
+        If any module is below 0 in z direction, raise the whole configuration
+        """
+        minimal_z = 0.05
+        for component_id, module_list in self.module_dict.iteritems():
+            for module_obj in module_list:
+                if module_obj.Position[2] < 0.05:
+                    minimal_z = min(module_obj.Position[2], minimal_z)
+
+        if minimal_z < 0.05:
+            # raise the configuration
+            for component_id, module_list in self.module_dict.iteritems():
+                for module_obj in module_list:
+                    module_obj.Position = list(module_obj.Position)
+                    module_obj.Position[2] += (0.05-minimal_z)
+
     def rebuildConfiguration(self):
         """
         Rebuild the configuration not from a stucture file
@@ -190,6 +211,41 @@ class ConfigurationBuilder(object):
             else:
                 raise ValueError("Component {!r} has already been rebuilt.".format(component2_id))
 
+    def checkStable(self):
+        """
+        Check if the configuration is stable
+        """
+
+        # find center of mass first
+        single_mass = 1.0
+        sum_of_mass = 0.0
+        sum_of_mass_times_position = numpy.array([0.0, 0.0, 0.0]) # x, y, z
+        for component_id, module_list in self.module_dict.iteritems():
+            for module_obj in module_list:
+                sum_of_mass += single_mass
+                sum_of_mass_times_position += single_mass * numpy.array(module_obj.Position[0:3])
+
+        center_of_mass_position = sum_of_mass_times_position/sum_of_mass
+
+        base_polygon = []
+        TOLERANCE = 0.001
+        for component_id, module_list in self.module_dict.iteritems():
+            for module_obj in module_list:
+                if abs(module_obj.Position[2] - 0.05) < TOLERANCE:
+                    base_polygon.append(module_obj.Position[0:2])
+
+        if len(base_polygon) < 3:
+            print "\033[1;31mThe configuration is not statically stable!\033[0m"
+            raw_input("Press enter to continue...")
+            return
+
+        cv = ConvexHull(base_polygon)
+        base_polygon = [base_polygon[m] for m in cv.vertices]
+        pl = Polygon.Polygon(base_polygon)
+        if not pl.isInside(center_of_mass_position[0], center_of_mass_position[1]):
+            print "\033[1;31mThe configuration is not statically stable!\033[0m"
+            raw_input("Press enter to continue...")
+
     def updateModulePosition(self, connection_list):
         """
         Transform the position of some SMORES robots based on the links between configurations
@@ -206,12 +262,16 @@ class ConfigurationBuilder(object):
                 node1 = connection.Node2
                 node2 = connection.Node1
 
+            child_module_obj.JointAngle = list(child_module_obj.JointAngle)
+            child_module_obj.JointAngle[int(node2)] += float(connection.Angle)/180*math.pi
+
             (module_position, rotation_matrix, quaternion) = \
                     kinematics.get_new_position(parent_module_obj, child_module_obj.JointAngle, \
                                                 int(node1), int(node2))
 
             child_module_obj.Position = tuple(module_position[0:3]) + quaternion
             child_module_obj.rotation_matrix = rotation_matrix
+            child_module_obj.JointAngle[int(node2)] -= float(connection.Angle)/180*math.pi
 
             component_id = child_module_name.split(":")[0]
             self.checkCollision(child_module_obj)
@@ -411,5 +471,7 @@ if __name__ == "__main__":
     CB.loadStructure(sys.argv[1])
     CB.struct.printSummary()
     CB.buildNewConfiguration()
+    CB.raiseConfiguration()
+    CB.checkStable()
     print "Saving new configuration to {}.".format(sys.argv[2])
     CB.saveNewConfiguration(sys.argv[2])

@@ -160,7 +160,7 @@ def get_xform2(a, face2):
 		t0 = matrix([0, 0, 0]).T
 		r0 = rotz( pi )
 		t1 = matrix([0, 0, 0]).T
-		r1 = rotx( a[2] )
+		r1 = rotx( a[1] )
 		t2 = matrix([-L, 0, 0]).T
 		r2 = rotx( -a[3] )
 		return se3(r0,t0)*se3(r1,t1)*se3(r2,t2)

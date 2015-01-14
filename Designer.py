@@ -57,8 +57,10 @@ class Designer_Frame(wx.Frame):
         self.Bind(wx.EVT_COMBOBOX, self.onSelectBase, self.combo_box_base)
         self.Bind(wx.EVT_COMBOBOX, self.onSelectConfig1, self.combo_box_config1)
         self.Bind(wx.EVT_COMBOBOX, self.onSelectModule1, self.combo_box_module1)
+        self.Bind(wx.EVT_COMBOBOX, self.onSelectNode1, self.combo_box_node1)
         self.Bind(wx.EVT_COMBOBOX, self.onSelectConfig2, self.combo_box_config2)
         self.Bind(wx.EVT_COMBOBOX, self.onSelectModule2, self.combo_box_module2)
+        self.Bind(wx.EVT_COMBOBOX, self.onSelectNode2, self.combo_box_node2)
         self.Bind(wx.EVT_BUTTON, self.onClickInsert, self.button_insert)
         self.Bind(wx.EVT_BUTTON, self.onClickRemove, self.button_remove)
         self.Bind(wx.EVT_BUTTON, self.onClickSave, self.button_save)
@@ -312,6 +314,8 @@ class Designer_Frame(wx.Frame):
     def onSelectConfig1(self, event):  # wxGlade: Designer_Frame.<event_handler>
         self.fullyClearComboBox(self.combo_box_module1)
         self.fullyClearComboBox(self.combo_box_node1)
+        self.p_canvas.setHighlightModule()
+        self.p_canvas.setHighlightNode()
         item_id = self.combo_box_config1.GetSelection()
         component_obj = self.combo_box_config1.GetClientData(item_id)
         self.p_canvas.setData(self.getModuleList(component_obj.sle_object.ET_tree))
@@ -321,6 +325,8 @@ class Designer_Frame(wx.Frame):
     def onSelectConfig2(self, event):  # wxGlade: Designer_Frame.<event_handler>
         self.fullyClearComboBox(self.combo_box_module2)
         self.fullyClearComboBox(self.combo_box_node2)
+        self.c_canvas.setHighlightModule()
+        self.c_canvas.setHighlightNode()
         item_id = event.GetSelection()
         component_obj = self.combo_box_config2.GetClientData(item_id)
         self.c_canvas.setData(self.getModuleList(component_obj.sle_object.ET_tree))
@@ -356,6 +362,7 @@ class Designer_Frame(wx.Frame):
 
                 # clear the GUI
                 self.fullyClearComboBox(self.combo_box_base)
+                self.p_canvas.clear()
                 self.text_ctrl_name.SetValue(self.nextAvailableName())
                 self.combo_box_base.Disable()
                 self.setComboBoxState(True)
@@ -469,21 +476,32 @@ class Designer_Frame(wx.Frame):
 
     def onSelectModule1(self, event):  # wxGlade: Designer_Frame.<event_handler>
         self.fullyClearComboBox(self.combo_box_node1)
+        self.p_canvas.setHighlightNode()
         item_id = event.GetSelection()
         item = self.combo_box_module1.GetClientData(item_id)
         self.combo_box_node1.SetItems([self.node_name[i] for i in xrange(4) if not item.nodes[i]])
+        self.p_canvas.setHighlightModule(item.ModelName)
 
     def onSelectModule2(self, event):  # wxGlade: Designer_Frame.<event_handler>
         self.fullyClearComboBox(self.combo_box_node2)
+        self.c_canvas.setHighlightNode()
         item_id = event.GetSelection()
         item = self.combo_box_module2.GetClientData(item_id)
         self.combo_box_node2.SetItems([self.node_name[i] for i in xrange(4) if not item.nodes[i]])
+        self.c_canvas.setHighlightModule(item.ModelName)
 
     def onSelectBase(self, event):  # wxGlade: Designer_Frame.<event_handler>
         item_id = event.GetSelection()
         item = self.combo_box_base.GetClientData(item_id)
         self.p_canvas.setData(self.getModuleList(item.sle_object.ET_tree))
 
+    def onSelectNode1(self, event):  # wxGlade: Designer_Frame.<event_handler>
+        node_name = self.combo_box_node1.GetStringSelection()
+        self.p_canvas.setHighlightNode(node_name[0].lower())
+
+    def onSelectNode2(self, event):  # wxGlade: Designer_Frame.<event_handler>
+        node_name = self.combo_box_node2.GetStringSelection()
+        self.c_canvas.setHighlightNode(node_name[0].lower())
 
 # end of class Designer_Frame
 if __name__ == "__main__":

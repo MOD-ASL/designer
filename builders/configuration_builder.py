@@ -290,7 +290,8 @@ class ConfigurationBuilder(object):
             for m in module_obj_list:
                 module2_pos = numpy.array(m.Position[:3])
                 if numpy.linalg.norm(module1_pos - module2_pos) - 0.1 < -TOLERANCE:
-                    raise ValueError("There is a self-collision between {} and {}.".format(module_obj.ModelName, m.ModelName))
+                    #raise ValueError("There is a self-collision between {} and {}.".format(module_obj.ModelName, m.ModelName))
+                    print "\033[1;31mThere is a self-collision between {} and {}.\033[0m".format(module_obj.ModelName, m.ModelName)
 
     def findParentModule(self, module1_name, module2_name):
         """

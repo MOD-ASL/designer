@@ -11,6 +11,8 @@ import numpy
 import Polygon
 from scipy.spatial import ConvexHull
 
+sys.path.append("../")
+
 from objects import Module, Connection, Link
 from utils import kinematics
 from utils.utils import prettify, string2Tuple, roundup

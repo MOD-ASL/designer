@@ -188,7 +188,7 @@ class ConfigurationBuilder(object):
 
     def rebuildConfiguration(self):
         """
-        Rebuild the configuration not from a stucture file
+        Rebuild the configuration not from a structure file
         """
         self.updated_module_dict = {}
 

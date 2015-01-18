@@ -9,7 +9,7 @@ from collections import OrderedDict
 from ast import literal_eval
 import numpy
 import Polygon
-from scipy.spatial import ConvexHull
+import Polygon.Utils
 
 sys.path.append("../")
 
@@ -129,7 +129,6 @@ class ConfigurationBuilder(object):
         """
         Load structure file to a structure object
         """
-        print "Converting structure file {} ...".format(structure_file_path)
         self.struct = Structure()
         self.struct.loadXML(structure_file_path)
         self.struct.loadComponents()
@@ -190,7 +189,7 @@ class ConfigurationBuilder(object):
 
     def rebuildConfiguration(self):
         """
-        Rebuild the configuration not from a stucture file
+        Rebuild the configuration not from a structure file
         """
         self.updated_module_dict = {}
 
@@ -238,15 +237,12 @@ class ConfigurationBuilder(object):
 
         if len(base_polygon) < 3:
             print "\033[1;31mThe configuration is not statically stable!\033[0m"
-            raw_input("Press enter to continue...")
             return
 
-        cv = ConvexHull(base_polygon)
-        base_polygon = [base_polygon[m] for m in cv.vertices]
         pl = Polygon.Polygon(base_polygon)
+        pl = Polygon.Utils.convexHull(pl)
         if not pl.isInside(center_of_mass_position[0], center_of_mass_position[1]):
             print "\033[1;31mThe configuration is not statically stable!\033[0m"
-            raw_input("Press enter to continue...")
 
     def updateModulePosition(self, connection_list):
         """

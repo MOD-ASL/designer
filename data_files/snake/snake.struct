@@ -3,11 +3,11 @@
   <Components>
     <Component>
       <component_id>Component_1</component_id>
-      <file_path>/home/shangyi/.gazebo/designer/data_files/SmoveShort/SmoveShort.conf</file_path>
+      <file_path>/home/shangyi/.gazebo/designer/data_files/smallSnake/smallSnake.conf</file_path>
     </Component>
     <Component>
       <component_id>Component_0</component_id>
-      <file_path>/home/shangyi/.gazebo/designer/data_files/SmoveShort/SmoveShort.conf</file_path>
+      <file_path>/home/shangyi/.gazebo/designer/data_files/smallSnake/smallSnake.conf</file_path>
     </Component>
   </Components>
   <Links>
@@ -16,17 +16,17 @@
       <component1>
         <Component>
           <component_id>Component_0</component_id>
-          <file_path>/home/shangyi/.gazebo/designer/data_files/SmoveShort/SmoveShort.conf</file_path>
+          <file_path>/home/shangyi/.gazebo/designer/data_files/smallSnake/smallSnake.conf</file_path>
         </Component>
       </component1>
       <component2>
         <Component>
           <component_id>Component_1</component_id>
-          <file_path>/home/shangyi/.gazebo/designer/data_files/SmoveShort/SmoveShort.conf</file_path>
+          <file_path>/home/shangyi/.gazebo/designer/data_files/smallSnake/smallSnake.conf</file_path>
         </Component>
       </component2>
       <module1>Module_1</module1>
-      <module2>Module_2</module2>
+      <module2>Module_1</module2>
       <node1>3</node1>
       <node2>3</node2>
       <distance>0.0</distance>

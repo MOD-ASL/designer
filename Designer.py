@@ -10,7 +10,6 @@ import xml.etree.ElementTree as ET
 from copy import deepcopy
 import math
 from subprocess import Popen, PIPE
-import pydot
 import random
 
 import SmoresLibraryEntry as SLE
@@ -932,6 +931,7 @@ class Designer_Frame(wx.Frame):
         self.list_ctrl_command.SetColumnWidth(0, 20)
 
     def updateGaitDiagram(self, cmd_block):
+        import pydot
         self.gait_diagram = pydot.Dot(graph_type='digraph')
         new_node = pydot.Node("Start")
         self.gait_diagram.add_node(new_node)

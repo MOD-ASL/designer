@@ -127,7 +127,6 @@ class ConfigurationBuilder(object):
         """
         Load structure file to a structure object
         """
-        print "Converting structure file {} ...".format(structure_file_path)
         self.struct = Structure()
         self.struct.loadXML(structure_file_path)
         self.struct.loadComponents()
@@ -236,14 +235,12 @@ class ConfigurationBuilder(object):
 
         if len(base_polygon) < 3:
             print "\033[1;31mThe configuration is not statically stable!\033[0m"
-            raw_input("Press enter to continue...")
             return
 
         pl = Polygon.Polygon(base_polygon)
         pl = Polygon.Utils.convexHull(pl)
         if not pl.isInside(center_of_mass_position[0], center_of_mass_position[1]):
             print "\033[1;31mThe configuration is not statically stable!\033[0m"
-            raw_input("Press enter to continue...")
 
     def updateModulePosition(self, connection_list):
         """

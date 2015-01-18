@@ -9,12 +9,18 @@ import os
 import xml.etree.ElementTree as ET
 from copy import deepcopy
 import math
+from subprocess import Popen, PIPE
+import pydot
+import random
 
 import SmoresLibraryEntry as SLE
 from utils.utils import string2Tuple, prettify
 from utils import kinematics
 from utils.previewCanvas import PreviewCanvas
 from objects import Module, Component, Connection, Link
+from builders.configuration_builder import Structure, ConfigurationBuilder
+from builders.control_builder import ControlBuilder
+from builders.gait_builder import GaitBuilder, GaitCollisionChecker
 
 # begin wxGlade: dependencies
 import gettext
@@ -23,33 +29,160 @@ import gettext
 # begin wxGlade: extracode
 # end wxGlade
 
+
+
+class EditGaitFileDialog(wx.Dialog):
+    def __init__(self, *args, **kwds):
+        # begin wxGlade: EditGaitFileDialog.__init__
+        kwds["style"] = wx.DEFAULT_DIALOG_STYLE | wx.STAY_ON_TOP
+        wx.Dialog.__init__(self, *args, **kwds)
+        self.text_ctrl_gait_file = wx.TextCtrl(self, wx.ID_ANY, "", style=wx.TE_MULTILINE)
+        self.button_save_gait = wx.Button(self, wx.ID_ANY, _("Save"))
+        self.button_save_as_gait = wx.Button(self, wx.ID_ANY, _("Save As"))
+        self.label_save_gait_status = wx.StaticText(self, wx.ID_ANY, "")
+
+        self.__set_properties()
+        self.__do_layout()
+
+        self.Bind(wx.EVT_BUTTON, self.onClickSaveGait, self.button_save_gait)
+        self.Bind(wx.EVT_BUTTON, self.onClickSaveAsGait, self.button_save_as_gait)
+        # end wxGlade
+
+    def __set_properties(self):
+        # begin wxGlade: EditGaitFileDialog.__set_properties
+        self.SetTitle(_("Edit Gait File"))
+        self.SetSize((800, 400))
+        # end wxGlade
+
+        self.gait_file_name = ""
+
+    def __do_layout(self):
+        # begin wxGlade: EditGaitFileDialog.__do_layout
+        sizer_22 = wx.BoxSizer(wx.VERTICAL)
+        sizer_23 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_22.Add(self.text_ctrl_gait_file, 1, wx.EXPAND, 0)
+        sizer_23.Add(self.button_save_gait, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 50)
+        sizer_23.Add(self.button_save_as_gait, 0, wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 50)
+        sizer_22.Add(sizer_23, 0, wx.EXPAND, 0)
+        sizer_22.Add(self.label_save_gait_status, 0, wx.LEFT | wx.EXPAND | wx.ALIGN_CENTER_VERTICAL, 10)
+        self.SetSizer(sizer_22)
+        self.Layout()
+        # end wxGlade
+
+    def openGaitFile(self, gait_file_name):
+        self.gait_file_name = gait_file_name
+        with open(self.gait_file_name, "r") as f:
+            self.text_ctrl_gait_file.SetValue(f.read())
+
+    def onClickSaveGait(self, event):  # wxGlade: EditGaitFileDialog.<event_handler>
+        self.label_save_gait_status.SetLabel("Gait file is saved at {}".format(self.gait_file_name))
+        with open(self.gait_file_name, "w+") as f:
+            f.write(self.text_ctrl_gait_file.GetValue())
+
+    def onClickSaveAsGait(self, event):  # wxGlade: EditGaitFileDialog.<event_handler>
+        dir_path = os.path.dirname(self.gait_file_name)
+        saveFileDialog = wx.FileDialog(self, "Save As", dir_path, "", "Gait files (*.gait)|*.gait", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        saveFileDialog.ShowModal()
+        self.gait_file_name = saveFileDialog.GetPath()
+        if not self.gait_file_name.endswith(".gait"):
+            self.gait_file_name += ".gait"
+        saveFileDialog.Destroy()
+
+        self.onClickSaveGait(None)
+
+# end of class EditGaitFileDialog
+class BuildConfigurationDiaglog(wx.Dialog):
+    def __init__(self, *args, **kwds):
+        # begin wxGlade: BuildConfigurationDiaglog.__init__
+        kwds["style"] = wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER | wx.THICK_FRAME | wx.STAY_ON_TOP
+        wx.Dialog.__init__(self, *args, **kwds)
+        self.text_ctrl_structLog = wx.TextCtrl(self, wx.ID_ANY, "", style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH)
+        self.conf_preview_canvas = PreviewCanvas(self, wx.ID_ANY)
+
+        self.__set_properties()
+        self.__do_layout()
+        # end wxGlade
+
+    def __set_properties(self):
+        # begin wxGlade: BuildConfigurationDiaglog.__set_properties
+        self.SetTitle(_("Build Configuration"))
+        self.SetSize((900, 600))
+        # end wxGlade
+
+    def __do_layout(self):
+        # begin wxGlade: BuildConfigurationDiaglog.__do_layout
+        sizer_14 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_15 = wx.BoxSizer(wx.VERTICAL)
+        sizer_15.Add(self.text_ctrl_structLog, 1, wx.EXPAND, 0)
+        sizer_14.Add(sizer_15, 1, wx.EXPAND, 0)
+        sizer_14.Add(self.conf_preview_canvas, 1, wx.EXPAND, 0)
+        self.SetSizer(sizer_14)
+        self.Layout()
+        # end wxGlade
+
+    def setText(self, line, color):
+        self.text_ctrl_structLog.SetForegroundColour(color)
+        self.text_ctrl_structLog.AppendText(line)
+        self.text_ctrl_structLog.SetForegroundColour(wx.BLACK)
+
+    def clearText(self):
+        self.text_ctrl_structLog.Clear()
+
+    def setCanvasData(self, data):
+        self.conf_preview_canvas.setData(data)
+
+# end of class BuildConfigurationDiaglog
 class Designer_Frame(wx.Frame):
     def __init__(self, *args, **kwds):
         # begin wxGlade: Designer_Frame.__init__
-        kwds["style"] = wx.DEFAULT_FRAME_STYLE
+        kwds["style"] = wx.CAPTION | wx.CLOSE_BOX | wx.MINIMIZE_BOX | wx.MAXIMIZE | wx.MAXIMIZE_BOX | wx.SYSTEM_MENU | wx.RESIZE_BORDER | wx.CLIP_CHILDREN
         wx.Frame.__init__(self, *args, **kwds)
-        self.label_base = wx.StaticText(self, wx.ID_ANY, _("Choose Base Component:"))
-        self.combo_box_base = wx.ComboBox(self, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN)
-        self.label_name = wx.StaticText(self, wx.ID_ANY, _("Component Name: "))
-        self.text_ctrl_name = wx.TextCtrl(self, wx.ID_ANY, "")
-        self.label_parent = wx.StaticText(self, wx.ID_ANY, _("Parent Component"))
-        self.combo_box_config1 = wx.ComboBox(self, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN)
-        self.combo_box_module1 = wx.ComboBox(self, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN)
-        self.combo_box_node1 = wx.ComboBox(self, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN)
-        self.p_canvas = PreviewCanvas(self, wx.ID_ANY)
-        self.label_child = wx.StaticText(self, wx.ID_ANY, _("Child Component"))
-        self.combo_box_config2 = wx.ComboBox(self, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN)
-        self.combo_box_module2 = wx.ComboBox(self, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN)
-        self.combo_box_node2 = wx.ComboBox(self, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN)
-        self.c_canvas = PreviewCanvas(self, wx.ID_ANY)
-        self.list_ctrl_configs = wx.ListCtrl(self, wx.ID_ANY, style=wx.LC_REPORT | wx.LC_VRULES | wx.SUNKEN_BORDER)
-        self.label_distance = wx.StaticText(self, wx.ID_ANY, _("Distance: "))
-        self.text_ctrl_distance = wx.TextCtrl(self, wx.ID_ANY, "")
-        self.label_angle = wx.StaticText(self, wx.ID_ANY, _("Angle: "))
-        self.slider_angle = wx.Slider(self, wx.ID_ANY, 0, 0, 360, style=wx.SL_HORIZONTAL | wx.SL_AUTOTICKS | wx.SL_LABELS)
-        self.button_insert = wx.Button(self, wx.ID_ANY, _("Insert"))
-        self.button_remove = wx.Button(self, wx.ID_ANY, _("Remove"))
-        self.button_save = wx.Button(self, wx.ID_ANY, _("Save"))
+        self.notebook_1 = wx.Notebook(self, wx.ID_ANY, style=0)
+        self.notebook_1_pane_conf = wx.Panel(self.notebook_1, wx.ID_ANY)
+        self.label_conf_name = wx.StaticText(self.notebook_1_pane_conf, wx.ID_ANY, _("Configuration Name: "))
+        self.text_ctrl_conf_name = wx.TextCtrl(self.notebook_1_pane_conf, wx.ID_ANY, "")
+        self.label_base = wx.StaticText(self.notebook_1_pane_conf, wx.ID_ANY, _("Choose Base Component:"))
+        self.combo_box_base = wx.ComboBox(self.notebook_1_pane_conf, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN)
+        self.label_name = wx.StaticText(self.notebook_1_pane_conf, wx.ID_ANY, _("Component Name: "))
+        self.text_ctrl_name = wx.TextCtrl(self.notebook_1_pane_conf, wx.ID_ANY, "")
+        self.label_parent = wx.StaticText(self.notebook_1_pane_conf, wx.ID_ANY, _("Parent Component"))
+        self.combo_box_config1 = wx.ComboBox(self.notebook_1_pane_conf, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN)
+        self.combo_box_module1 = wx.ComboBox(self.notebook_1_pane_conf, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN)
+        self.combo_box_node1 = wx.ComboBox(self.notebook_1_pane_conf, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN)
+        self.p_canvas = PreviewCanvas(self.notebook_1_pane_conf, wx.ID_ANY)
+        self.label_child = wx.StaticText(self.notebook_1_pane_conf, wx.ID_ANY, _("Child Component"))
+        self.combo_box_config2 = wx.ComboBox(self.notebook_1_pane_conf, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN)
+        self.combo_box_module2 = wx.ComboBox(self.notebook_1_pane_conf, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN)
+        self.combo_box_node2 = wx.ComboBox(self.notebook_1_pane_conf, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN)
+        self.c_canvas = PreviewCanvas(self.notebook_1_pane_conf, wx.ID_ANY)
+        self.list_ctrl_configs = wx.ListCtrl(self.notebook_1_pane_conf, wx.ID_ANY, style=wx.LC_REPORT | wx.LC_VRULES | wx.SUNKEN_BORDER)
+        self.label_distance = wx.StaticText(self.notebook_1_pane_conf, wx.ID_ANY, _("Distance: "))
+        self.text_ctrl_distance = wx.TextCtrl(self.notebook_1_pane_conf, wx.ID_ANY, "")
+        self.label_angle = wx.StaticText(self.notebook_1_pane_conf, wx.ID_ANY, _("Angle: "))
+        self.slider_angle = wx.Slider(self.notebook_1_pane_conf, wx.ID_ANY, 0, 0, 360, style=wx.SL_HORIZONTAL | wx.SL_AUTOTICKS | wx.SL_LABELS)
+        self.button_insert = wx.Button(self.notebook_1_pane_conf, wx.ID_ANY, _("Insert"))
+        self.button_remove = wx.Button(self.notebook_1_pane_conf, wx.ID_ANY, _("Remove"))
+        self.button_save = wx.Button(self.notebook_1_pane_conf, wx.ID_ANY, _("Save Structure"))
+        self.notebook_1_pane_gait = wx.Panel(self.notebook_1, wx.ID_ANY)
+        self.button_control_load_struct = wx.Button(self.notebook_1_pane_gait, wx.ID_ANY, _("Load Structure"))
+        self.label_command_block_name = wx.StaticText(self.notebook_1_pane_gait, wx.ID_ANY, _("Command Block Name:"))
+        self.text_ctrl_command_block_name = wx.TextCtrl(self.notebook_1_pane_gait, wx.ID_ANY, "")
+        self.radio_box_command_block_type = wx.RadioBox(self.notebook_1_pane_gait, wx.ID_ANY, _("Command Block Type"), choices=[_("Parallel"), _("Series")], majorDimension=1, style=wx.RA_SPECIFY_COLS)
+        self.radio_btn_insert_existing_command = wx.RadioButton(self.notebook_1_pane_gait, wx.ID_ANY, _("Insert Existing Command"))
+        self.radio_btn_insert_new_command = wx.RadioButton(self.notebook_1_pane_gait, wx.ID_ANY, _("Insert New Command"))
+        self.list_box_existing_command = wx.ListBox(self.notebook_1_pane_gait, wx.ID_ANY, choices=[], style=wx.LB_SINGLE)
+        self.list_box_component_name = wx.ListBox(self.notebook_1_pane_gait, wx.ID_ANY, choices=[], style=wx.LB_SINGLE)
+        self.list_box_gait_name = wx.ListBox(self.notebook_1_pane_gait, wx.ID_ANY, choices=[], style=wx.LB_SINGLE)
+        self.button_insert_command = wx.Button(self.notebook_1_pane_gait, wx.ID_ANY, _("Insert Command"))
+        self.button_clear_all_command_block = wx.Button(self.notebook_1_pane_gait, wx.ID_ANY, _("Clear All"))
+        self.button_compile_command_block = wx.Button(self.notebook_1_pane_gait, wx.ID_ANY, _("Compile Command Block"))
+        self.list_ctrl_command = wx.ListCtrl(self.notebook_1_pane_gait, wx.ID_ANY, style=wx.LC_REPORT | wx.SUNKEN_BORDER)
+        self.label_gait_name = wx.StaticText(self.notebook_1_pane_gait, wx.ID_ANY, _("Gait Name:"))
+        self.text_ctrl_gait_name = wx.TextCtrl(self.notebook_1_pane_gait, wx.ID_ANY, "")
+        self.combo_box_final_command = wx.ComboBox(self.notebook_1_pane_gait, wx.ID_ANY, choices=[], style=wx.CB_DROPDOWN | wx.CB_READONLY)
+        self.button_save_gait = wx.Button(self.notebook_1_pane_gait, wx.ID_ANY, _("Save Gait File"))
+        self.control_conf_preview_canvas = PreviewCanvas(self.notebook_1_pane_gait, wx.ID_ANY)
+        self.bitmap_control_flow = wx.StaticBitmap(self.notebook_1_pane_gait, wx.ID_ANY, wx.NullBitmap)
 
         self.__set_properties()
         self.__do_layout()
@@ -64,36 +197,53 @@ class Designer_Frame(wx.Frame):
         self.Bind(wx.EVT_BUTTON, self.onClickInsert, self.button_insert)
         self.Bind(wx.EVT_BUTTON, self.onClickRemove, self.button_remove)
         self.Bind(wx.EVT_BUTTON, self.onClickSave, self.button_save)
+        self.Bind(wx.EVT_BUTTON, self.onClickLoadStruct, self.button_control_load_struct)
+        self.Bind(wx.EVT_RADIOBUTTON, self.onClickInsertExistingCommand, self.radio_btn_insert_existing_command)
+        self.Bind(wx.EVT_RADIOBUTTON, self.onClickInsertNewCommand, self.radio_btn_insert_new_command)
+        self.Bind(wx.EVT_LISTBOX, self.onClickListBoxComponentName, self.list_box_component_name)
+        self.Bind(wx.EVT_LISTBOX_DCLICK, self.onDClickGaitName, self.list_box_gait_name)
+        self.Bind(wx.EVT_BUTTON, self.onClickInsertCommand, self.button_insert_command)
+        self.Bind(wx.EVT_BUTTON, self.onClickClearAllCommandBlock, self.button_clear_all_command_block)
+        self.Bind(wx.EVT_BUTTON, self.onClickCompileCommandBlock, self.button_compile_command_block)
+        self.Bind(wx.EVT_BUTTON, self.onClickSaveGait, self.button_save_gait)
+        self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.onPageChanged, self.notebook_1)
         # end wxGlade
 
-        self.smores_library = []
-        self.smores_library_to_components = []
-        self.inserted_components = {} # {name: component_obj}
-        self.component_dict = {} # {name: ET_tree}
-        self.node_name = ["Front Wheel", "Left Wheel", "Right Wheel", "Back Frame"]
-        self.link_list = []
 
+    def __set_properties(self):
+        # begin wxGlade: Designer_Frame.__set_properties
+        self.SetTitle(_("Designer"))
+        self.text_ctrl_conf_name.SetMinSize((300, 27))
+        self.text_ctrl_name.SetMinSize((200, 27))
+        self.p_canvas.SetMinSize((600, 120))
+        self.c_canvas.SetMinSize((600, 120))
+        self.radio_box_command_block_type.SetSelection(0)
+        self.text_ctrl_gait_name.SetMinSize((200, 27))
+        # end wxGlade
+
+        self.node_name = ["Front Wheel", "Left Wheel", "Right Wheel", "Back Frame"]
+        self.resetAllData()
         dialog = wx.DirDialog(None, "Choose a directory:",style=wx.DD_DEFAULT_STYLE | wx.DD_NEW_DIR_BUTTON)
         if dialog.ShowModal() == wx.ID_OK:
             self.library_path = dialog.GetPath()
         dialog.Destroy()
-        self.loadSMORESLibrary(self.library_path)
-        self.populateBaseList()
-        self.populateConfigList()
-        self.text_ctrl_name.SetValue(self.nextAvailableName())
-
-    def __set_properties(self):
-        # begin wxGlade: Designer_Frame.__set_properties
-        self.SetTitle(_("frame_1"))
-        self.SetSize((1177, 611))
-        self.text_ctrl_name.SetMinSize((200, 27))
-        self.p_canvas.SetMinSize((600, 120))
-        self.c_canvas.SetMinSize((600, 120))
-        # end wxGlade
 
     def __do_layout(self):
         # begin wxGlade: Designer_Frame.__do_layout
         sizer_1 = wx.BoxSizer(wx.VERTICAL)
+        sizer_16 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_17 = wx.BoxSizer(wx.VERTICAL)
+        sizer_18 = wx.BoxSizer(wx.VERTICAL)
+        sizer_24 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_21 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_29 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_25 = wx.BoxSizer(wx.VERTICAL)
+        sizer_26 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_28 = wx.BoxSizer(wx.VERTICAL)
+        sizer_27 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_19 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_20 = wx.BoxSizer(wx.VERTICAL)
+        sizer_1_copy = wx.BoxSizer(wx.VERTICAL)
         sizer_2 = wx.BoxSizer(wx.VERTICAL)
         sizer_5 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_8 = wx.BoxSizer(wx.VERTICAL)
@@ -106,13 +256,17 @@ class Designer_Frame(wx.Frame):
         sizer_12 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_13 = wx.BoxSizer(wx.VERTICAL)
         sizer_9 = wx.BoxSizer(wx.VERTICAL)
+        sizer_30 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_30.Add(self.label_conf_name, 0, 0, 0)
+        sizer_30.Add(self.text_ctrl_conf_name, 0, 0, 0)
+        sizer_1_copy.Add(sizer_30, 0, wx.EXPAND, 0)
         sizer_9.Add(self.label_base, 0, 0, 0)
         sizer_9.Add(self.combo_box_base, 0, 0, 0)
         sizer_12.Add(sizer_9, 1, wx.EXPAND, 0)
         sizer_13.Add(self.label_name, 0, 0, 0)
         sizer_13.Add(self.text_ctrl_name, 0, 0, 0)
         sizer_12.Add(sizer_13, 1, wx.EXPAND, 0)
-        sizer_1.Add(sizer_12, 0, wx.EXPAND, 0)
+        sizer_1_copy.Add(sizer_12, 0, wx.EXPAND, 0)
         sizer_2.Add(self.label_parent, 0, 0, 0)
         sizer_3.Add(self.combo_box_config1, 0, 0, 0)
         sizer_3.Add(self.combo_box_module1, 0, 0, 0)
@@ -139,15 +293,85 @@ class Designer_Frame(wx.Frame):
         sizer_8.Add(self.button_save, 0, 0, 0)
         sizer_5.Add(sizer_8, 1, wx.EXPAND, 0)
         sizer_2.Add(sizer_5, 1, wx.EXPAND, 0)
-        sizer_1.Add(sizer_2, 1, wx.EXPAND, 0)
+        sizer_1_copy.Add(sizer_2, 1, wx.EXPAND, 0)
+        self.notebook_1_pane_conf.SetSizer(sizer_1_copy)
+        sizer_18.Add(self.button_control_load_struct, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
+        sizer_20.Add(self.label_command_block_name, 0, 0, 0)
+        sizer_20.Add(self.text_ctrl_command_block_name, 0, wx.EXPAND, 0)
+        sizer_19.Add(sizer_20, 1, wx.EXPAND, 0)
+        sizer_19.Add(self.radio_box_command_block_type, 0, 0, 0)
+        sizer_18.Add(sizer_19, 0, wx.EXPAND, 0)
+        sizer_27.Add(self.radio_btn_insert_existing_command, 1, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_27.Add(self.radio_btn_insert_new_command, 1, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_25.Add(sizer_27, 0, wx.EXPAND, 0)
+        sizer_26.Add(self.list_box_existing_command, 1, wx.EXPAND, 2)
+        sizer_28.Add(self.list_box_component_name, 1, wx.EXPAND, 0)
+        sizer_28.Add(self.list_box_gait_name, 1, wx.EXPAND, 0)
+        sizer_26.Add(sizer_28, 1, wx.EXPAND, 0)
+        sizer_25.Add(sizer_26, 1, wx.EXPAND, 0)
+        sizer_18.Add(sizer_25, 1, wx.EXPAND, 0)
+        sizer_29.Add(self.button_insert_command, 1, wx.ALIGN_CENTER_HORIZONTAL, 0)
+        sizer_29.Add(self.button_clear_all_command_block, 1, wx.ALIGN_CENTER_HORIZONTAL, 0)
+        sizer_29.Add(self.button_compile_command_block, 1, wx.ALIGN_CENTER_HORIZONTAL, 0)
+        sizer_18.Add(sizer_29, 0, wx.EXPAND, 0)
+        sizer_21.Add(self.list_ctrl_command, 1, wx.EXPAND, 0)
+        sizer_18.Add(sizer_21, 1, wx.EXPAND, 0)
+        sizer_24.Add(self.label_gait_name, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_24.Add(self.text_ctrl_gait_name, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_24.Add(self.combo_box_final_command, 0, wx.LEFT | wx.RIGHT | wx.ALIGN_CENTER_VERTICAL, 10)
+        sizer_24.Add(self.button_save_gait, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        sizer_18.Add(sizer_24, 0, wx.EXPAND, 0)
+        sizer_16.Add(sizer_18, 1, wx.EXPAND, 0)
+        sizer_17.Add(self.control_conf_preview_canvas, 1, wx.EXPAND, 0)
+        sizer_17.Add(self.bitmap_control_flow, 1, wx.EXPAND, 0)
+        sizer_16.Add(sizer_17, 1, wx.EXPAND, 0)
+        self.notebook_1_pane_gait.SetSizer(sizer_16)
+        self.notebook_1.AddPage(self.notebook_1_pane_conf, _("Build Configuration"))
+        self.notebook_1.AddPage(self.notebook_1_pane_gait, _("Build Gait"))
+        sizer_1.Add(self.notebook_1, 1, wx.EXPAND, 0)
         self.SetSizer(sizer_1)
+        sizer_1.Fit(self)
         self.Layout()
         # end wxGlade
 
+        self.resetConfBuildTab()
+
+    def resetAllData(self):
+        self.smores_library = []
+        self.smores_library_to_components = []
+        self.inserted_components = {} # {name: component_obj}
+        self.component_dict = {} # {name: ET_tree}
+        self.link_list = []
+        self.configuration_file_name = ""
+        self.build_conf_dialog = None
+        self.build_control_struct = None
+        self.inserted_command_blocks = {} # {name: command_block_obj}
+        self.command_list = []
+        self.CB = ControlBuilder()
+        self.edit_gait_dialog = None
+        self.gait_diagram = None
+
+    def resetConfBuildTab(self):
+        self.fullyClearComboBox(self.combo_box_base)
+        self.fullyClearComboBox(self.combo_box_config1)
+        self.fullyClearComboBox(self.combo_box_module1)
+        self.fullyClearComboBox(self.combo_box_node1)
+        self.fullyClearComboBox(self.combo_box_config2)
+        self.fullyClearComboBox(self.combo_box_module2)
+        self.fullyClearComboBox(self.combo_box_node2)
+        self.list_ctrl_configs.ClearAll()
+
+        self.loadSMORESLibrary(self.library_path)
+        self.populateBaseList()
+        self.populateConfigList()
+        self.text_ctrl_name.SetValue(self.nextAvailableName("Component", self.inserted_components.keys()))
         self.setupListCtrlConfigs()
         self.setComboBoxState(False)
+        self.combo_box_base.Enable()
         self.text_ctrl_distance.SetValue("0")
         self.button_remove.Disable()
+        self.text_ctrl_conf_name.SetValue("NewConfiguration")
+
 
     def setupListCtrlConfigs(self):
         self.list_ctrl_configs.InsertColumn(0, "Angle")
@@ -183,12 +407,12 @@ class Designer_Frame(wx.Frame):
             self.combo_box_node1.Disable()
             self.combo_box_node2.Disable()
 
-    def nextAvailableName(self):
+    def nextAvailableName(self, prefix, list_of_existing_name):
         name = ""
         i = 0
         while len(name) == 0:
-            name = "Component_{}".format(i)
-            for component_name in self.inserted_components:
+            name = "{}_{}".format(prefix, i)
+            for component_name in list_of_existing_name:
                 if component_name.lower() == name.lower():
                     name = ""
                     i += 1
@@ -202,6 +426,16 @@ class Designer_Frame(wx.Frame):
     def populateConfigList(self):
         for component_obj in self.smores_library_to_components:
             self.combo_box_config2.Append(component_obj.name, component_obj)
+
+    def loadAllStructureFiles(self, smores_library_path):
+        # walk down the library to load all data
+        for root, dirs, files in os.walk(smores_library_path):
+            # ignore the top most directory
+            if root == smores_library_path: continue
+            # find all files ends with .struct
+            for file_name in files:
+                if os.path.splitext(file_name)[1] == '.struct':
+                    self.struct_file_list.append(os.path.join(root, file_name))
 
     def loadSMORESLibrary(self, smores_library_path):
         """
@@ -229,7 +463,7 @@ class Designer_Frame(wx.Frame):
                     sle_object.configuration_file_name = os.path.join(root, file_name)
 
                     # store the gait files if there is any
-                    sle_object.gait_file_name_list = [f for f in files \
+                    sle_object.gait_file_name_list = [os.path.join(root, f) for f in files \
                             if os.path.splitext(f)[1] == '.gait']
 
                     sle_object.ET_tree = ET.parse(sle_object.configuration_file_name)
@@ -363,7 +597,7 @@ class Designer_Frame(wx.Frame):
                 # clear the GUI
                 self.fullyClearComboBox(self.combo_box_base)
                 self.p_canvas.clear()
-                self.text_ctrl_name.SetValue(self.nextAvailableName())
+                self.text_ctrl_name.SetValue(self.nextAvailableName("Component", self.inserted_components.keys()))
                 self.combo_box_base.Disable()
                 self.setComboBoxState(True)
         else:
@@ -414,7 +648,7 @@ class Designer_Frame(wx.Frame):
                 self.fullyClearComboBox(self.combo_box_module1)
                 self.fullyClearComboBox(self.combo_box_module2)
                 self.fullyClearComboBox(self.combo_box_config2)
-                self.text_ctrl_name.SetValue(self.nextAvailableName())
+                self.text_ctrl_name.SetValue(self.nextAvailableName("Component", self.inserted_components.keys()))
                 self.populateConfigList()
                 self.onSelectConfig1(None)
 
@@ -431,10 +665,35 @@ class Designer_Frame(wx.Frame):
             self.button_remove.Disable()
 
     def onClickSave(self, event):  # wxGlade: Designer_Frame.<event_handler>
-        saveFileDialog = wx.FileDialog(self, "Save As", os.getcwd(), "NewStructure", "Struct Files (*.struct)|*.struct", wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
-        saveFileDialog.ShowModal()
-        self.saveStructure(saveFileDialog.GetPath())
-        saveFileDialog.Destroy()
+        configuration_name = self.text_ctrl_conf_name.GetValue()
+        if configuration_name == "":
+            wx.MessageDialog(self, "Please specify a configuration name.", style=wx.OK|wx.ICON_EXCLAMATION|wx.STAY_ON_TOP).ShowModal()
+            return
+
+        configuration_dir = os.path.join(self.library_path, configuration_name)
+        if not os.path.exists(configuration_dir):
+            os.makedirs(configuration_dir)
+
+        self.build_conf_dialog = BuildConfigurationDiaglog(self, wx.ID_ANY)
+        base_name = os.path.join(configuration_dir, configuration_name)
+        self.saveStructure(base_name)
+
+        self.build_conf_dialog.clearText()
+        p = Popen(["python", "-m", "builders.configuration_builder", base_name+".struct", base_name+".conf"], stdout = PIPE)
+        for line in iter(p.stdout.readline,''):
+            color = wx.BLACK
+            if line.startswith("\033[1;31m"):
+                line = line.replace("\033[1;31m","").replace("\033[0m","")
+                color = wx.RED
+            self.build_conf_dialog.setText(line, color)
+
+        if os.path.isfile(base_name+".conf"):
+            ET_tree = ET.parse(base_name+".conf")
+            self.build_conf_dialog.setCanvasData(self.getModuleList(ET_tree))
+        else:
+            self.build_conf_dialog.setCanvasData(self.getModuleList(ET_tree))
+        self.build_conf_dialog.ShowModal()
+
 
     def saveStructure(self, path):
         if not path.endswith(".struct"):
@@ -502,6 +761,247 @@ class Designer_Frame(wx.Frame):
     def onSelectNode2(self, event):  # wxGlade: Designer_Frame.<event_handler>
         node_name = self.combo_box_node2.GetStringSelection()
         self.c_canvas.setHighlightNode(node_name[0].lower())
+
+    def onPageChanged(self, event):  # wxGlade: Designer_Frame.<event_handler>
+        item_id = event.GetSelection()
+        if item_id == 0:
+            # select Build Configuration tab
+            self.resetAllData()
+            self.resetConfBuildTab()
+            self.p_canvas.setData([])
+            self.c_canvas.setData([])
+        if item_id == 1:
+            # select Build Gait tab
+            self.resetAllData()
+            self.resetGaitBuildTab()
+
+    def resetGaitBuildTab(self):
+        self.text_ctrl_command_block_name.SetValue(self.nextAvailableName("CommandBlock", self.inserted_command_blocks.keys()))
+        self.list_box_component_name.Set([])
+        self.radio_btn_insert_existing_command.Disable()
+        self.radio_btn_insert_new_command.Disable()
+        self.list_box_component_name.Disable()
+        self.list_box_gait_name.Disable()
+        self.list_box_existing_command.Disable()
+        self.button_insert_command.Disable()
+        self.button_clear_all_command_block.Disable()
+        self.button_compile_command_block.Disable()
+        self.loadSMORESLibrary(self.library_path)
+        self.control_conf_preview_canvas.setData([])
+        self.button_control_load_struct.Enable()
+        self.list_ctrl_command.ClearAll()
+        self.list_ctrl_command.InsertColumn(0, "Command")
+        self.list_ctrl_command.SetColumnWidth(0, 300)
+        self.list_ctrl_command.InsertColumn(0, "ID")
+        self.list_ctrl_command.SetColumnWidth(0, 20)
+
+    def onClickLoadStruct(self, event):  # wxGlade: Designer_Frame.<event_handler>
+        openFileDialog = wx.FileDialog(self, "Open", self.library_path, "", "Struct files (*.struct)|*.struct", wx.FD_OPEN | wx.FD_FILE_MUST_EXIST)
+        openFileDialog.ShowModal()
+        path = openFileDialog.GetPath()
+        openFileDialog.Destroy()
+
+        self.configuration_file_name = os.path.splitext(path)[0] + ".conf"
+        if not os.path.isfile(self.configuration_file_name):
+            wx.MessageDialog(self, "Cannot find {}, please convert the .struct file to .conf file first.".format(self.configuration_file_name), style=wx.OK|wx.ICON_EXCLAMATION|wx.STAY_ON_TOP).ShowModal()
+            return
+
+        self.build_control_struct = Structure()
+        self.build_control_struct.loadXML(path)
+        self.build_control_struct.loadComponents()
+        self.populateComponentList()
+        for sle_object in self.smores_library:
+            if sle_object.configuration_file_name == self.configuration_file_name:
+                self.control_conf_preview_canvas.setData(self.getModuleList(sle_object.ET_tree))
+                break
+
+        self.button_control_load_struct.Disable()
+
+    def populateComponentList(self):
+        self.list_box_component_name.Set([])
+        for component_name, obj in self.build_control_struct.component_dict.iteritems():
+            self.list_box_component_name.Insert(component_name, 0, obj)
+        if len(self.list_box_component_name.GetItems()) > 0:
+            self.radio_btn_insert_new_command.Enable()
+            self.radio_btn_insert_new_command.SetValue(True)
+            self.button_insert_command.Enable()
+            self.list_box_component_name.Enable()
+            self.list_box_gait_name.Enable()
+
+    def onClickInsertExistingCommand(self, event):  # wxGlade: Designer_Frame.<event_handler>
+        self.list_box_component_name.Disable()
+        self.list_box_gait_name.Disable()
+        self.list_box_existing_command.Enable()
+
+    def onClickInsertNewCommand(self, event):  # wxGlade: Designer_Frame.<event_handler>
+        self.list_box_component_name.Enable()
+        self.list_box_gait_name.Enable()
+        self.list_box_existing_command.Disable()
+
+    def onClickListBoxComponentName(self, event):  # wxGlade: Designer_Frame.<event_handler>
+        self.list_box_gait_name.Set([])
+        gait_file_name_list = []
+        item_id = event.GetSelection()
+        item = self.list_box_component_name.GetClientData(item_id)
+        for sle_object in self.smores_library:
+            if sle_object.configuration_file_name == item.file_path:
+                gait_file_name_list = sle_object.gait_file_name_list
+                break
+
+        for gait_name in gait_file_name_list:
+            self.list_box_gait_name.Insert(os.path.basename(gait_name), 0, gait_name)
+
+    def onClickInsertCommand(self, event):  # wxGlade: Designer_Frame.<event_handler>
+        if self.radio_btn_insert_new_command.GetValue():
+            # insert new command
+            if self.list_box_component_name.GetSelection() == wx.NOT_FOUND:
+                wx.MessageDialog(self, "Please choose a component.", style=wx.OK|wx.ICON_EXCLAMATION|wx.STAY_ON_TOP).ShowModal()
+                return
+            if self.list_box_gait_name.GetSelection() == wx.NOT_FOUND:
+                wx.MessageDialog(self, "Please choose a gait.", style=wx.OK|wx.ICON_EXCLAMATION|wx.STAY_ON_TOP).ShowModal()
+                return
+            component_name = self.list_box_component_name.GetStringSelection()
+            gait_name = self.list_box_gait_name.GetStringSelection()
+            command_str = "Component:{}  Gait:{}".format(component_name, gait_name)
+            self.list_ctrl_command.Append([len(self.command_list), command_str])
+
+            item_id = self.list_box_gait_name.GetSelection()
+            gait_file_name = self.list_box_gait_name.GetClientData(item_id)
+            cmd = self.CB.createGaitBlockET(component_name, gait_file_name)
+            self.command_list.append(cmd)
+
+        elif self.radio_btn_insert_existing_command.GetValue():
+            # insert existing command
+            if self.list_box_existing_command.GetSelection() == wx.NOT_FOUND:
+                wx.MessageDialog(self, "Please choose an existing command.", style=wx.OK|wx.ICON_EXCLAMATION|wx.STAY_ON_TOP).ShowModal()
+                return
+
+            item_id = self.list_box_existing_command.GetSelection()
+            item = self.list_box_existing_command.GetClientData(item_id)
+            self.list_ctrl_command.Append([len(self.command_list), self.list_box_existing_command.GetStringSelection()])
+            self.command_list.append(item)
+
+        if len(self.command_list) > 0:
+            self.button_clear_all_command_block.Enable()
+            self.button_compile_command_block.Enable()
+
+    def onClickClearAllCommandBlock(self, event):  # wxGlade: Designer_Frame.<event_handler>
+        self.list_ctrl_command.ClearAll()
+        self.list_ctrl_command.InsertColumn(0, "Command")
+        self.list_ctrl_command.SetColumnWidth(0, 300)
+        self.list_ctrl_command.InsertColumn(0, "ID")
+        self.list_ctrl_command.SetColumnWidth(0, 20)
+        self.command_list = []
+        self.button_clear_all_command_block.Disable()
+        self.button_compile_command_block.Disable()
+
+    def onClickCompileCommandBlock(self, event):  # wxGlade: Designer_Frame.<event_handler>
+        cmd_name = self.text_ctrl_command_block_name.GetValue()
+        if cmd_name in self.inserted_command_blocks:
+            wx.MessageDialog(self, "Command Block Name {} already exists.".format(cmd_name), style=wx.OK|wx.ICON_EXCLAMATION|wx.STAY_ON_TOP).ShowModal()
+            return
+
+        if self.radio_box_command_block_type.GetSelection() == 0:
+            # Parallel block
+            cmd_block = self.CB.createParallelBlockET(self.command_list)
+            self.inserted_command_blocks[cmd_name] = cmd_block
+        elif self.radio_box_command_block_type.GetSelection() == 1:
+            # Series block
+            cmd_block = self.CB.createSeriesBlockET(self.command_list)
+            self.inserted_command_blocks[cmd_name] = cmd_block
+
+
+        if len(self.inserted_command_blocks.keys())>0:
+            self.radio_btn_insert_existing_command.Enable()
+        self.list_box_existing_command.Insert(cmd_name, 0, cmd_block)
+        self.combo_box_final_command.Append(cmd_name, cmd_block)
+
+        #self.updateGaitDiagram(cmd_block)
+        #bitmap = wx.Bitmap(self.configuration_file_name.replace(".conf", ".png"), wx.BITMAP_TYPE_PNG)
+        #self.bitmap_control_flow.SetBitmap(bitmap)
+        #self.notebook_1_pane_gait.Refresh()
+
+        self.text_ctrl_command_block_name.SetValue(self.nextAvailableName("CommandBlock", self.inserted_command_blocks.keys()))
+        self.button_clear_all_command_block.Disable()
+        self.button_compile_command_block.Disable()
+        self.command_list = []
+        self.list_ctrl_command.ClearAll()
+        self.list_ctrl_command.InsertColumn(0, "Command")
+        self.list_ctrl_command.SetColumnWidth(0, 300)
+        self.list_ctrl_command.InsertColumn(0, "ID")
+        self.list_ctrl_command.SetColumnWidth(0, 20)
+
+    def updateGaitDiagram(self, cmd_block):
+        self.gait_diagram = pydot.Dot(graph_type='digraph')
+        new_node = pydot.Node("Start")
+        self.gait_diagram.add_node(new_node)
+        self.block2Graph(cmd_block, [new_node])
+        self.gait_diagram.write_png(self.configuration_file_name.replace(".conf", ".png"))
+
+    def block2Graph(self, cmd_block, last_node_list):
+
+        block_type = cmd_block.get("type")
+
+        if block_type == "gait":
+            component_name = cmd_block.find("component_id").text
+            gait_file = cmd_block.find("gait_file").text
+            file_name = os.path.basename(gait_file)
+            configuration_name = os.path.basename(os.path.dirname(gait_file))
+            new_node = pydot.Node("{}\n{}\n{}".format(component_name, file_name, configuration_name))
+            self.gait_diagram.add_node(new_node)
+            for node in last_node_list:
+                self.gait_diagram.add_edge(pydot.Edge(node, new_node))
+            return [new_node]
+
+        elif block_type == "p_block":
+            node_list = []
+            split_node = pydot.Node(str(random.random()))
+            self.gait_diagram.add_node(split_node)
+            for node in last_node_list:
+                self.gait_diagram.add_edge(pydot.Edge(node, split_node))
+            for block in cmd_block.findall("Block"):
+                end_node_list = self.block2Graph(block, [split_node])
+                node_list.extend(end_node_list)
+            return node_list
+
+        elif block_type == "s_block":
+            for block in cmd_block.findall("Block"):
+                last_node_list = self.block2Graph(block, last_node_list)
+            return last_node_list
+
+    def onDClickGaitName(self, event):  # wxGlade: Designer_Frame.<event_handler>
+        item_id = self.list_box_gait_name.GetSelection()
+        gait_file_name = self.list_box_gait_name.GetClientData(item_id)
+
+        self.edit_gait_dialog = EditGaitFileDialog(self, wx.ID_ANY)
+        self.edit_gait_dialog.openGaitFile(gait_file_name)
+        self.edit_gait_dialog.ShowModal()
+
+    def onClickSaveGait(self, event):  # wxGlade: Designer_Frame.<event_handler>
+        name = self.text_ctrl_gait_name.GetValue()
+        if len(name) == 0:
+            wx.MessageDialog(self, "Please specify a gait name.", style=wx.OK|wx.ICON_EXCLAMATION|wx.STAY_ON_TOP).ShowModal()
+            return
+
+        item_id = self.combo_box_final_command.GetSelection()
+        cmd_block = self.combo_box_final_command.GetClientData(item_id)
+        dirname = os.path.dirname(self.configuration_file_name)
+        self.CB.build(cmd_block, os.path.join(dirname, name) + ".control")
+
+        structure_file_name = self.configuration_file_name.replace(".conf", ".struct")
+        control_file_name = os.path.join(dirname, name) + ".control"
+        gait_file_name = os.path.join(dirname, name) + ".gait"
+        CB = ConfigurationBuilder()
+        CB.loadStructure(structure_file_name)
+        CB.buildNewConfiguration()
+        GB = GaitBuilder()
+        GB.loadControl(control_file_name)
+        GCC = GaitCollisionChecker()
+        gait = GCC.loadGait(GB.output_str.split("\n"))
+        GCC.runGait(CB)
+        GB.output_str = CB.replaceAllModuleName(GB.output_str)
+        GB.saveNewGait(gait_file_name)
+
 
 # end of class Designer_Frame
 if __name__ == "__main__":

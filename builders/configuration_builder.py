@@ -9,7 +9,7 @@ from collections import OrderedDict
 from ast import literal_eval
 import numpy
 import Polygon
-from scipy.spatial import ConvexHull
+import Polygon.Utils
 
 from objects import Module, Connection, Link
 from utils import kinematics
@@ -239,9 +239,8 @@ class ConfigurationBuilder(object):
             raw_input("Press enter to continue...")
             return
 
-        cv = ConvexHull(base_polygon)
-        base_polygon = [base_polygon[m] for m in cv.vertices]
         pl = Polygon.Polygon(base_polygon)
+        pl = Polygon.Utils.convexHull(pl)
         if not pl.isInside(center_of_mass_position[0], center_of_mass_position[1]):
             print "\033[1;31mThe configuration is not statically stable!\033[0m"
             raw_input("Press enter to continue...")

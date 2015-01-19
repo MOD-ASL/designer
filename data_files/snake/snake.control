@@ -1,0 +1,135 @@
+<?xml version="1.0" ?>
+<Control>
+  <Block type="s_block">
+    <Block type="p_block">
+      <Block type="gait">
+        <component_id>Component_5</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/anti_waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_4</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_3</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/anti_waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_2</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_1</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/anti_waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_0</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/waggle.gait</gait_file>
+      </Block>
+    </Block>
+    <Block type="p_block">
+      <Block type="gait">
+        <component_id>Component_5</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/anti_waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_4</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_3</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/anti_waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_2</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_1</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/anti_waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_0</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/waggle.gait</gait_file>
+      </Block>
+    </Block>
+    <Block type="p_block">
+      <Block type="gait">
+        <component_id>Component_5</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/anti_waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_4</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_3</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/anti_waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_2</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_1</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/anti_waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_0</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/waggle.gait</gait_file>
+      </Block>
+    </Block>
+    <Block type="p_block">
+      <Block type="gait">
+        <component_id>Component_5</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/anti_waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_4</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_3</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/anti_waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_2</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_1</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/anti_waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_0</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/waggle.gait</gait_file>
+      </Block>
+    </Block>
+    <Block type="p_block">
+      <Block type="gait">
+        <component_id>Component_5</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/anti_waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_4</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_3</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/anti_waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_2</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_1</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/anti_waggle.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_0</component_id>
+        <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/waggle.gait</gait_file>
+      </Block>
+    </Block>
+  </Block>
+</Control>

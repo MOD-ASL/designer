@@ -616,7 +616,7 @@ class Designer_Frame(wx.Frame):
                 c_component_obj = deepcopy(self.combo_box_config2.GetClientData(item_id))
                 c_component_obj.name = self.text_ctrl_name.GetValue()
                 c_module_name = self.combo_box_module2.GetStringSelection()
-                c_node = self.node_name.index(self.combo_box_node1.GetStringSelection())
+                c_node = self.node_name.index(self.combo_box_node2.GetStringSelection())
 
                 # update child node
                 self.findModuleObject(c_component_obj.module_list, c_module_name).connect(c_node)

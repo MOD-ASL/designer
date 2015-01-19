@@ -690,7 +690,7 @@ class Designer_Frame(wx.Frame):
             ET_tree = ET.parse(base_name+".conf")
             self.build_conf_dialog.setCanvasData(self.getModuleList(ET_tree))
         else:
-            self.build_conf_dialog.setCanvasData(self.getModuleList(ET_tree))
+            self.build_conf_dialog.setCanvasData([])
         self.build_conf_dialog.ShowModal()
 
 

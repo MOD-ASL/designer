@@ -1,0 +1,10 @@
+Module_0 p0.0 p0.0 p0.0 p1.3962634016 {0-0} (START) ;
+Module_1 p0.0 p0.0 p0.0 p-1.3962634016 {0-0} (START) ;
+Module_2 p0.0 p0.0 p0.0 p-1.3962634016 {0-0} (START) ;
+Module_0 p0.0 p0.0 p0.0 p0.0 {END} (0-0) ;
+Module_1 p0.0 p0.0 p0.0 p0.0 {END} (0-0) ;
+Module_2 p0.0 p0.0 p0.0 p0.0 {END} (0-0) ;
+Module_5 p-1.57079632679 p0.0 p0.0 p0.0 {1-0} (START) ;
+Module_6 p0.0 p0.0 p0.0 p-1.57079632679 {1-0} (START) ;
+Module_4 p1.57079632679 p0.0 p0.0 p0.0 {1-0} (START) ;
+Module_4 p1.57079632679 p0.0 p0.0 p-1.57079632679 {END} (1-0) ;

@@ -1,0 +1,4 @@
+Module_2 p-1.57079632679 p0.0 p0.0 p0.0 {Section_0} ;
+Gripper_3 p0.0 p0.0 p0.0 p-1.57079632679 {Section_0} ;
+Module_1 p1.57079632679 p0.0 p0.0 p0.0 {Section_0} ;
+Module_1 p1.57079632679 p0.0 p0.0 p-1.57079632679 {Section_1} (Section_0) ;

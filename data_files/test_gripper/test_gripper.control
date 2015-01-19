@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<Control>
+  <Block type="p_block">
+    <Block type="gait">
+      <component_id>Component_0</component_id>
+      <gait_file>/home/shangyi/.gazebo/designer/data_files/smallSnake/waggle.gait</gait_file>
+    </Block>
+    <Block type="gait">
+      <component_id>Component_1</component_id>
+      <gait_file>/home/shangyi/.gazebo/designer/data_files/puma/contract.gait</gait_file>
+    </Block>
+  </Block>
+</Control>

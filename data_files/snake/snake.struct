@@ -2,11 +2,23 @@
 <Structure>
   <Components>
     <Component>
+      <component_id>Component_3</component_id>
+      <file_path>/home/shangyi/.gazebo/designer/data_files/smallSnake/smallSnake.conf</file_path>
+    </Component>
+    <Component>
+      <component_id>Component_2</component_id>
+      <file_path>/home/shangyi/.gazebo/designer/data_files/smallSnake/smallSnake.conf</file_path>
+    </Component>
+    <Component>
       <component_id>Component_1</component_id>
       <file_path>/home/shangyi/.gazebo/designer/data_files/smallSnake/smallSnake.conf</file_path>
     </Component>
     <Component>
       <component_id>Component_0</component_id>
+      <file_path>/home/shangyi/.gazebo/designer/data_files/smallSnake/smallSnake.conf</file_path>
+    </Component>
+    <Component>
+      <component_id>Component_4</component_id>
       <file_path>/home/shangyi/.gazebo/designer/data_files/smallSnake/smallSnake.conf</file_path>
     </Component>
   </Components>
@@ -26,9 +38,72 @@
         </Component>
       </component2>
       <module1>Module_1</module1>
-      <module2>Module_1</module2>
+      <module2>Module_2</module2>
       <node1>3</node1>
-      <node2>3</node2>
+      <node2>0</node2>
+      <distance>0.0</distance>
+      <angle>0</angle>
+    </Link>
+    <Link>
+      <link_id>Link_1</link_id>
+      <component1>
+        <Component>
+          <component_id>Component_1</component_id>
+          <file_path>/home/shangyi/.gazebo/designer/data_files/smallSnake/smallSnake.conf</file_path>
+        </Component>
+      </component1>
+      <component2>
+        <Component>
+          <component_id>Component_2</component_id>
+          <file_path>/home/shangyi/.gazebo/designer/data_files/smallSnake/smallSnake.conf</file_path>
+        </Component>
+      </component2>
+      <module1>Module_1</module1>
+      <module2>Module_2</module2>
+      <node1>3</node1>
+      <node2>0</node2>
+      <distance>0.0</distance>
+      <angle>0</angle>
+    </Link>
+    <Link>
+      <link_id>Link_2</link_id>
+      <component1>
+        <Component>
+          <component_id>Component_2</component_id>
+          <file_path>/home/shangyi/.gazebo/designer/data_files/smallSnake/smallSnake.conf</file_path>
+        </Component>
+      </component1>
+      <component2>
+        <Component>
+          <component_id>Component_3</component_id>
+          <file_path>/home/shangyi/.gazebo/designer/data_files/smallSnake/smallSnake.conf</file_path>
+        </Component>
+      </component2>
+      <module1>Module_1</module1>
+      <module2>Module_2</module2>
+      <node1>3</node1>
+      <node2>0</node2>
+      <distance>0.0</distance>
+      <angle>0</angle>
+    </Link>
+    <Link>
+      <link_id>Link_3</link_id>
+      <component1>
+        <Component>
+          <component_id>Component_3</component_id>
+          <file_path>/home/shangyi/.gazebo/designer/data_files/smallSnake/smallSnake.conf</file_path>
+        </Component>
+      </component1>
+      <component2>
+        <Component>
+          <component_id>Component_4</component_id>
+          <file_path>/home/shangyi/.gazebo/designer/data_files/smallSnake/smallSnake.conf</file_path>
+        </Component>
+      </component2>
+      <module1>Module_1</module1>
+      <module2>Module_2</module2>
+      <node1>3</node1>
+      <node2>0</node2>
       <distance>0.0</distance>
       <angle>0</angle>
     </Link>

@@ -90,9 +90,12 @@ class GaitCollisionChecker(object):
         command_dict = {} # {module_name: command_list_per_iter}
         for cmd in commands:
             cmd_str = cmd.cmd_str
-            cmd_list  = map(float, cmd_str.replace("p","").split(" "))
+            cmd_list  = cmd_str.replace("p","").split(" ")
             module_obj = CB_instance.findModuleObject(cmd.module_name)
-            command_dict[cmd.module_name] = [(y-x)/SIM_TIME for x,y in zip(module_obj.JointAngle, cmd_list)]
+            command_dict[cmd.module_name] = [0.0, 0.0, 0.0, 0.0]
+            for i, joint_cmd in enumerate(cmd_list):
+                if joint_cmd != "i":
+                    command_dict[cmd.module_name][i] = (float(joint_cmd)-module_obj.JointAngle[i])/SIM_TIME
 
         for t in xrange(SIM_TIME):
             for cmd in commands:
@@ -113,7 +116,7 @@ class GaitFileLoader(object):
     """
     def __init__(self):
         self.file_cache_dict = {} # {file_path: Gait_obj}
-        self.RE_line_parser = re.compile("^(?P<m_name>[:\w]+)\s(?P<position>(p[0-9\.-]+\s){4})({(?P<label>[-\w]+)}\s)?(\((?P<condition>[-\w]+)\)\s)?;")
+        self.RE_line_parser = re.compile("^(?P<m_name>[:\w]+)\s(?P<position>(((p[0-9\.-]+)|(i))\s){4})({(?P<label>[-\w]+)}\s)?(\((?P<condition>[-\w]+)\)\s)?;")
 
     def loadGaitFile(self, gait_file_name):
         """

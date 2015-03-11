@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<Control>
+  <Block type="p_block">
+    <Block type="gait">
+      <component_id>Component_4</component_id>
+      <gait_file>/home/tarik/designer/data_files/drive1/d1_drive_30.gait</gait_file>
+    </Block>
+    <Block type="gait">
+      <component_id>Component_0</component_id>
+      <gait_file>/home/tarik/designer/data_files/steer3/s3_drive_30.gait</gait_file>
+    </Block>
+    <Block type="gait">
+      <component_id>Component_1</component_id>
+      <gait_file>/home/tarik/designer/data_files/drive1/d1_drive_30.gait</gait_file>
+    </Block>
+    <Block type="gait">
+      <component_id>Component_2</component_id>
+      <gait_file>/home/tarik/designer/data_files/drive1/d1_drive_30.gait</gait_file>
+    </Block>
+    <Block type="gait">
+      <component_id>Component_3</component_id>
+      <gait_file>/home/tarik/designer/data_files/drive1/d1_drive_30.gait</gait_file>
+    </Block>
+  </Block>
+</Control>

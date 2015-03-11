@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+<Control>
+  <Block type="p_block">
+    <Block type="gait">
+      <component_id>right-front-wheel</component_id>
+      <gait_file>/home/shangyi/.gazebo/designer/data_files/drive1/d1_standup.gait</gait_file>
+    </Block>
+    <Block type="gait">
+      <component_id>right-back-wheel</component_id>
+      <gait_file>/home/shangyi/.gazebo/designer/data_files/drive1/d1_standup.gait</gait_file>
+    </Block>
+    <Block type="gait">
+      <component_id>left-front-wheel</component_id>
+      <gait_file>/home/shangyi/.gazebo/designer/data_files/drive1/d1_standup.gait</gait_file>
+    </Block>
+    <Block type="gait">
+      <component_id>steer3</component_id>
+      <gait_file>/home/shangyi/.gazebo/designer/data_files/steer3/s3_standup.gait</gait_file>
+    </Block>
+    <Block type="gait">
+      <component_id>left-back-wheel</component_id>
+      <gait_file>/home/shangyi/.gazebo/designer/data_files/drive1/d1_standup.gait</gait_file>
+    </Block>
+  </Block>
+</Control>

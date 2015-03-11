@@ -1,0 +1,127 @@
+<?xml version="1.0" ?>
+<Control>
+  <Block type="s_block">
+    <Block type="p_block">
+      <Block type="gait">
+        <component_id>Component_4</component_id>
+        <gait_file>/home/tarik/designer/data_files/drive1/d1_standup.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_0</component_id>
+        <gait_file>/home/tarik/designer/data_files/steer3/s3_standup.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_1</component_id>
+        <gait_file>/home/tarik/designer/data_files/drive1/d1_standup.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_2</component_id>
+        <gait_file>/home/tarik/designer/data_files/drive1/d1_standup.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_3</component_id>
+        <gait_file>/home/tarik/designer/data_files/drive1/d1_standup.gait</gait_file>
+      </Block>
+    </Block>
+    <Block type="p_block">
+      <Block type="gait">
+        <component_id>Component_4</component_id>
+        <gait_file>/home/tarik/designer/data_files/drive1/d1_drive_3.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_0</component_id>
+        <gait_file>/home/tarik/designer/data_files/steer3/s3_drive_3.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_1</component_id>
+        <gait_file>/home/tarik/designer/data_files/drive1/d1_drive_3.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_2</component_id>
+        <gait_file>/home/tarik/designer/data_files/drive1/d1_drive_3.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_3</component_id>
+        <gait_file>/home/tarik/designer/data_files/drive1/d1_drive_3.gait</gait_file>
+      </Block>
+    </Block>
+    <Block type="gait">
+      <component_id>Component_0</component_id>
+      <gait_file>/home/tarik/designer/data_files/steer3/s3_turn_right.gait</gait_file>
+    </Block>
+    <Block type="p_block">
+      <Block type="gait">
+        <component_id>Component_4</component_id>
+        <gait_file>/home/tarik/designer/data_files/drive1/d1_drive_12.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_0</component_id>
+        <gait_file>/home/tarik/designer/data_files/steer3/s3_drive_12.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_1</component_id>
+        <gait_file>/home/tarik/designer/data_files/drive1/d1_drive_12.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_2</component_id>
+        <gait_file>/home/tarik/designer/data_files/drive1/d1_drive_12.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_3</component_id>
+        <gait_file>/home/tarik/designer/data_files/drive1/d1_drive_12.gait</gait_file>
+      </Block>
+    </Block>
+    <Block type="gait">
+      <component_id>Component_0</component_id>
+      <gait_file>/home/tarik/designer/data_files/steer3/s3_turn_left.gait</gait_file>
+    </Block>
+    <Block type="p_block">
+      <Block type="gait">
+        <component_id>Component_4</component_id>
+        <gait_file>/home/tarik/designer/data_files/drive1/d1_drive_21.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_0</component_id>
+        <gait_file>/home/tarik/designer/data_files/steer3/s3_drive_21.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_1</component_id>
+        <gait_file>/home/tarik/designer/data_files/drive1/d1_drive_21.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_2</component_id>
+        <gait_file>/home/tarik/designer/data_files/drive1/d1_drive_21.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_3</component_id>
+        <gait_file>/home/tarik/designer/data_files/drive1/d1_drive_21.gait</gait_file>
+      </Block>
+    </Block>
+    <Block type="gait">
+      <component_id>Component_0</component_id>
+      <gait_file>/home/tarik/designer/data_files/steer3/s3_turn_right.gait</gait_file>
+    </Block>
+    <Block type="p_block">
+      <Block type="gait">
+        <component_id>Component_4</component_id>
+        <gait_file>/home/tarik/designer/data_files/drive1/d1_drive_30.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_0</component_id>
+        <gait_file>/home/tarik/designer/data_files/steer3/s3_drive_30.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_1</component_id>
+        <gait_file>/home/tarik/designer/data_files/drive1/d1_drive_30.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_2</component_id>
+        <gait_file>/home/tarik/designer/data_files/drive1/d1_drive_30.gait</gait_file>
+      </Block>
+      <Block type="gait">
+        <component_id>Component_3</component_id>
+        <gait_file>/home/tarik/designer/data_files/drive1/d1_drive_30.gait</gait_file>
+      </Block>
+    </Block>
+  </Block>
+</Control>

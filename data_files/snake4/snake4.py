@@ -1,3 +1,5 @@
+import sys
+sys.path.append('../../tableMaker'	)
 from TableMaker import *
 from math import pi
 class Snake4:
@@ -12,14 +14,14 @@ class Snake4:
 
 	def lay_flat(self):
 		''' Lays down flat, ready to drive'''
-		return parallel( [self.sms(module, {'center':0, 'front':0})
-						for module_name in self.names.keys] )
+		return parallel( [self.sms(module_name, {'center':0, 'front':0})
+						for module_name in self.names.keys()] )
 
 	def drive_absolute(self, angle):
 		''' Drive the wheels forward to the specified angle '''
 		self.drive_angle = angle
 		return parallel( [self.sms(module_name, {'left':angle, 'right':angle})
-						for module_name in self.names.keys] )
+						for module_name in self.names.keys()] )
 
 	def drive(self, relative_angle):
 		''' Drive the wheels to the specified angle relative the current position '''
@@ -31,9 +33,7 @@ class Snake4:
 
 	def janky_pause(self, time):
 		''' A janky implementation of pausing for the requested number of milliseconds. '''
-		sms = lambda module_name, positions: self.sms(module_name, positions, self.grasper_names) 
-		return sms('center', {'left':0, 'right':0}) + ' [' + str(time) + ']'	
-
+		return self.sms('front', {'left':self.drive_angle, 'right':self.drive_angle}) 	+ ' [' + str(time) + ']'
 
 #---------------------------------------------------
 	def sms(self, module_name, positions, names = None):
